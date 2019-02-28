@@ -1,0 +1,25 @@
+{
+  "name": "node-red-dashboard-ui-flow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fow.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "qiushui",
+  "license": "ISC",
+  "dependencies": {
+    "node-red-dashboard": "2.13.x"
+  },
+  "keywords": [
+    "node-red",
+    "led",
+    "dashboard",
+    "ui"
+  ],
+  "node-red": {
+    "nodes": {
+      "ui_led": "flow.js"
+    }
+  }
+}
