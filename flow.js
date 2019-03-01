@@ -35,18 +35,20 @@ module.exports = function(RED) {
 			if (utils.checkConfig(config, node)) {
 	            var done = ui.addWidget({                   
 	                node: node,    
+                    width: config.width,	// width of widget
+                    height: config.height,	// height of widget
 	                format: utils.HTML(config), 
 	                group: config.group,  
 	                templateScope: "local",
 	                order: config.order,
 	                beforeEmit: utils.beforeEmit(node, RED),
-	                initController: utils.initController(node.colorForValue)
+	                initController: utils.initController
 				});
 
 				node.on("close", done);
 			}		
         } catch(error) {
-            console.log("While constructing LEDNode widget:", error);		
+            console.log("While constructing FlowNode widget:", error);		
 		}
     }
 

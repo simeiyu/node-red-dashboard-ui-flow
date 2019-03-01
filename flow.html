@@ -19,6 +19,18 @@
         group: {type: 'ui_group', required: true},
         order: {value: 0},
         label: {value: ''},
+        width: {
+            value: 0,
+            validate: function(v) {
+                var valid = true
+                var width = v||0;
+                var currentGroup = $('#node-input-group').val()|| this.group;
+                var groupNode = RED.nodes.node(currentGroup);
+                valid = !groupNode || +width <= +groupNode.width;
+                $("#node-input-size").toggleClass("input-error",!valid);
+                return valid;
+            }},
+        height: {value: 0},
 
         colorForValue: {
             required:true,
@@ -50,6 +62,9 @@
             }
         },
 
+        bgcolor: {value: '#fafafa'},
+        borderColor: {value: '#d9d9d9'},
+        color: {value: 'rgb(63, 173, 181)'},
         name: {value: ''}
     }
 
@@ -84,6 +99,14 @@
         }
 
         function generateValueFormRow(index, value) {
+
+            // use elementSizer to input common widget parameters
+            $("#node-input-size").elementSizer({
+                width: "#node-input-width",
+                height: "#node-input-height",
+                group: "#node-input-group"
+            });
+
             var requiredFieldClasses = [];
             
             const containerId = 'ValueFormRow-' + index
@@ -213,7 +236,6 @@
     RED.nodes.registerType('ui_flow', {
         category: 'dashboard',
         paletteLabel: 'flow',
-        color: 'rgb(63, 173, 181)',
         defaults: defaults,
         inputs: 1,
         inputLabels: "value",
@@ -221,72 +243,17 @@
         // align: 'right',
         label: label,
         labelStyle: labelStyle,
-        // icon: "led.png",
+        icon: "flow.png",
 
         oneditprepare: oneditprepare,
-        oneditsave: oneditsave
+        oneditsave: oneditsave,
+        oneditresize: function(size) {
+        }
     });
 })();
 </script>
 
 <script type="text/x-red" data-template-name="ui_flow">
-    <style>
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 30px;
-            height: 18px;
-        }
-        
-        .switch input {display:none;}
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 15px;
-            width: 15px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-        
-        input:checked + .slider {
-            background-color: #910000;
-        }
-        
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
-        
-        input:checked + .slider:before {
-            -webkit-transform: translateX(11px);
-            -ms-transform: translateX(11px);
-            transform: translateX(11px);
-        }
-        
-        /* Rounded sliders */
-        .slider.round {
-            border-radius: 34px;
-        }
-        
-        .slider.round:before {
-            border-radius: 50%;
-        }
-    </style>
 
     <div class="form-row">
         <label for="node-input-group"><i class="fa fa-table"></i> Group</label>
@@ -295,6 +262,12 @@
     <div class="form-row">
         <label for="node-input-label"><i class="icon-tag"></i> Label</label>
         <input type="text" id="node-input-label" placeholder="Label">
+    </div>
+    <div class="form-row" id="template-row-size">
+        <label><i class="fa fa-object-group"></i> Size</label>
+        <input type="hidden" id="node-input-width">
+        <input type="hidden" id="node-input-height">
+        <button class="editor-button" id="node-input-size"></button>
     </div>
 
     <div class="form-row node-input-colorForValue-container-row" style="margin-bottom:0px; width:100%; min-width:520px">
@@ -316,6 +289,18 @@
         <a href="#" class="editor-button editor-button-small" id="node-input-add-color" style="margin-top: 4px; margin-left: 103px;"><i class="fa fa-plus"></i> <span>Color</span></a>
     </div>
 
+    <div class="form-row">
+        <label for="node-input-color"><i class="fa fa-tint"></i>  Colour</label>
+        <input type="text" id="node-input-color" placeholder="optional text/icon color">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bgcolor"><i class="fa fa-tint"></i>  Background</label>
+        <input type="text" id="node-input-bgcolor" placeholder="optional background color">
+    </div>
+    <div class="form-row">
+        <label for="node-input-borderColor"><i class="fa fa-tint"></i>  BorderColor</label>
+        <input type="text" id="node-input-borderColor" placeholder="optional border color">
+    </div>
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
