@@ -6,22 +6,22 @@ module.exports = {
 	 */
     HTML: function(config) {
         return String.raw`
-            <ul class='flow'>
-                <li ng-repeat="item in msg.items"><span class='flow-status' ng-style="getStatusStyle(item.value)"></span><span>{{item.name}}</span></li>
+            <ul class='flow' id="flow_{{$id}}" style="background-color: ` + config.bgcolor + `; border-color: ` + config.borderColor + `">
+                <li ng-repeat="item in msg.items" id="flow_{{item.id}}" data-status="{{item.status}}"><span class='flow-status' ng-style="{'borderColor': item.color}"></span><span class='flow-status-after' ng-style="{'backgroundColor': item.color}"></span><span style="color: ` + config.color + `">{{item.name}}</span></li>
             </ul>
             
             <style>
                 .flow {
                     list-style: none;
                     margin: 10px 0;
-                    padding: 8px 16px;
+                    padding: 8px 20px;
                     border-radius: 5px;
                     border: 1px solid #d9d9d9;
                     background-color: #fafafa;
                     color: #555;
                 }
                 .flow li {
-                    padding: 8px 0 8px 40px;
+                    padding: 8px 0 8px 32px;
                     position: relative;
                 }
                 .flow-status {
@@ -36,11 +36,7 @@ module.exports = {
                     border-radius: 50%;
                     border: 3px solid #eee;
                 }
-                .active .flow-status {
-                    border-color: blue;
-                }
-                .flow > li::before {
-                    content: '';
+                .flow-status-after {
                     position: absolute;
                     z-index: 1;
                     width: 2px;
@@ -49,10 +45,7 @@ module.exports = {
                     bottom: 24px;
                     background-color: #eee;
                 }
-                .flow > li.active::before {
-                    background-color: blue;
-                }
-                .flow > li:first-child::before {
+                .flow li:first-child .flow-status-after {
                     display: none;
                 }
             </style>`;
@@ -90,68 +83,83 @@ module.exports = {
 
 		return function(msg, value) {
 
-			var updatedMessage = msg;
-			const colorForValue =  node.colorForValue;
-
-			var color, found = false;
+            const colorForValue =  node.colorForValue;
+			var colors = {};
+            const getColor = function(status) {
+                let _color = 'grey';
+                Object.keys(colors).forEach((item) => {
+                    if (colors[item] == status) {
+                        _color = item
+                    }
+                })
+                return _color
+            }
 
 			if (Array.isArray(colorForValue)) {
 				for (var index = 0; index < colorForValue.length; index ++) {
 					const compareWith = colorForValue[index];
-
-					if (RED.util.compareObjects(compareWith.value, value)) {
-						color = compareWith.color;
-						found = true;
-						break
-					}
+                    if (!colors[`${compareWith.color}`]) {
+                        colors[`${compareWith.color}`] = compareWith.value
+                    }
 				}
-			} 
-			if (found === false) {
-				color = 'gray';
-			}
+            }
+            
+            const values = value.map(function(item) {
+                return {
+                    ...item,
+                    color: getColor(item.status)
+                }
+            })
+            // console.log('flow - values -->', values)
 
 			return { 
 				msg: {
-					color: color,
-					glow: found
+                    items: values,
+                    colors: colors
 				}
 			};
 		}
 	},
 
-	initController: function(colorForValue) {
-        return function($scope) {
-            // $scope.flag = true; 
-            $scope.getStatusStyle = function(value) {
-                for (let i = 0; i < colorForValue.length; i++) {
-                    if (colorForValue[i].value == value) {
-                        return `background-color: ` + colorForValue[i].color;
-                    }
-                }
-            }      
+	initController: function($scope) {
+        // var update = (msg) => {
+        //     if (!msg) {
+        //         return;
+        //     }
+        //     const colors = msg.colors;
+        //     const getColor = function(status) {
+        //         let _color;
+        //         Object.keys(colors).forEach((item) => {
+        //             if (colors[item] == status) {
+        //                 _color = item
+        //             }
+        //         })
+        //         return _color
+        //     }
+        //     let color = 'gray'
+        //     function ledStyleTemplate(status) {
+        //         color = getColor(status);
+        //         if (color) {
+        //             return `border-color: ` + color;
+        //         } else {
+        //             // TODO: duplicate code because of execution scope, fix this shit :|
+        //             return `border-color: ` + color;
+        //         }
+        //     }
+        //     var ptr = document.getElementById("flow_" + $scope.$eval('$id'));
+        //     console.log('flow - ptr -->', ptr)
+        //     ptr.childNodes.forEach(function(item) {
+        //         console.log('item -->', item, item.nodeType)
+        //         if (item.nodeType == 1) {
+        //             var status = item.getAttributeNode('data-status').value
+        //             console.log('status -->', status)
+        //             console.log('status -->', item.childNodes[0])
+        //             item.childNodes[0].attr('style', ledStyleTemplate(status))
+        //         }
+        //         // item.childNodes[0].style = ledStyleTemplate(status)
+        //     })
 
-            // var update = (msg) => {
-            //     if (!msg) {
-            //         return;
-            //     }
-
-            //     function ledStyleTemplate(color, glow) {
-            //         if (glow) {
-            //             return `background-color: ` + color + `; box-shadow: inset #ffffff8c 0px 1px 2px, inset #00000033 0 -1px 1px 1px, inset ` + color + ` 0 -1px 4px, ` + color + ` 0 0px 16px, ` + color + ` 0 0px 16px;`;
-            //         } else {
-            //             // TODO: duplicate code because of execution scope, fix this shit :|
-            //             return `background-color: ` + color + `; box-shadow: inset #ffffff8c 0px 1px 2px, inset #00000033 0 -1px 1px 1px, inset ` + color + ` 0 -1px 4px;`;
-            //         }
-            //     }
-
-            //     var ptr = document.getElementById("led_" + $scope.$eval('$id'));
-                
-            //     const color = msg.color;
-            //     const glow = msg.glow;
-
-            //     $(ptr).attr('style', ledStyleTemplate(color, glow));
-            // };
-            // $scope.$watch('msg', update);
-        }
+        // };
+        // $scope.$watch('msg', update);
     }
 };
